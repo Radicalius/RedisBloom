@@ -169,6 +169,12 @@ char *TopK_Add(TopK *topk, const char *item, size_t itemlen, uint32_t increment)
         }
     }
 
+    // always check if element is already in the heap if it could be added to the heap
+    if (itemHeapPtr || *countPtr <= heapMin) {
+        *countPtr += increment;
+        maxCount = max(maxCount, *countPtr);
+    }
+
     // update heap
     if (itemHeapPtr != NULL) {
         itemHeapPtr->count = maxCount; // Not max of the two, as it might have been decayed
