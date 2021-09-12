@@ -161,6 +161,10 @@ char *TopK_Add(TopK *topk, const char *item, size_t itemlen, uint32_t increment)
         }
     }
 
+    if (maxCount >= heapMin && heapSearched == false) {
+        itemHeapPtr = checkExistInHeap(topk, item, itemlen);
+    }
+
     // update heap
     if (maxCount >= heapMin) {
         HeapBucket *itemHeapPtr = checkExistInHeap(topk, item, itemlen);
