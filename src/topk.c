@@ -30,6 +30,39 @@ static inline char *topKStrndup(const char *s, size_t n) {
     return ret;
 }
 
+double* findOrCreateLookupTable(double power) {
+    if (lookupTables == NULL) {
+        lookupTables = (double**)TOPK_CALLOC(16, sizeof(double*));
+        lookupTablesLength = 16;
+    }
+
+    int i = 0;
+    for (; i < lookupTablesLength; i++) {
+        if (lookupTables[i] == NULL) {
+            break;
+        }
+        if (lookupTables[i][1] == power) {
+            return lookupTables[i];
+        }
+    }
+
+    if (i == lookupTablesLength - 1) {
+        double** newLookupTables = (double**)TOPK_CALLOC(2 * lookupTablesLength, sizeof(double*));
+        memcpy(lookupTables, newLookupTables, lookupTablesLength);
+        TOPK_FREE(lookupTables);
+        lookupTables = newLookupTables;
+        lookupTablesLength *= 2;
+    }
+
+    lookupTables[i+1] = (double*)TOPK_CALLOC(TOPK_DECAY_LOOKUP_TABLE, sizeof(double));
+    lookupTables[i+1][0] = 1;
+    for (int j = 1; i < TOPK_DECAY_LOOKUP_TABLE; j++) {
+        lookupTables[i+1][j] = lookupTables[i+1][j-1] * power;
+    }
+
+    return lookupTables[i];
+}
+
 void heapifyDown(HeapBucket *array, size_t len, size_t start) {
     size_t child = start;
 
@@ -77,10 +110,7 @@ TopK *TopK_Create(uint32_t k, uint32_t width, uint32_t depth, double decay) {
     topk->decay = decay;
     topk->data = TOPK_CALLOC(((size_t)width) * depth, sizeof(Bucket));
     topk->heap = TOPK_CALLOC(k, sizeof(HeapBucket));
-
-    for (uint32_t i = 0; i < TOPK_DECAY_LOOKUP_TABLE; ++i) {
-        topk->lookupTable[i] = pow(decay, i);
-    }
+    topk->lookupTable = findOrCreateLookupTable(decay);
 
     return topk;
 }

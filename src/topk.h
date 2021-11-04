@@ -54,9 +54,12 @@ typedef struct topk {
 
     Bucket *data;
     struct HeapBucket *heap;
-    double lookupTable[TOPK_DECAY_LOOKUP_TABLE];
+    double *lookupTable;
     //  TODO: add function pointers for fast vs accurate
 } TopK;
+
+double** lookupTables;
+size_t lookupTablesLength;
 
 /*  Returns a new Top-K DS which will keep to 'k' heavyhitter, using
     'depth' arrays of 'width' counters at 'decay' rate.

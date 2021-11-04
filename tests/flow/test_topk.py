@@ -182,3 +182,13 @@ class testTopK():
         self.cmd('topk.add', 'topk', 'j', 'h', 'd', 'j', 'h', 'h', 'j', 'g', 'e', 'g', 'i', 'f', 'g', 'f', 'a', 'j', 'c', 'i', 'a', 'd')
         heapList = self.cmd('topk.list', 'topk')
         self.assertEqual(len(set(heapList)), len(heapList)) 
+
+    def test_handles_lookup_table_list_resize(self):
+        self.cmd('FLUSHALL')
+        for i in range(100):
+            key = 'topk{0}'.format(i)
+            self.cmd('topk.reserve', key, '10', '8', '7', str(1 - (i % 30)/100.))
+            self.cmd('topk.add', key, 'foo', 'bar', 'baz', 'foo')
+            vals = self.cmd('topk.list', key)
+            self.assertEqual(set(vals) == set(['foo', 'bar', 'baz']))
+        
